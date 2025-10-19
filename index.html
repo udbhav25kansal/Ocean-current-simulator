@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Interactive 3D ocean current simulator for the Strait of Georgia showing river discharge, wind, and tidal forcing">
+    <meta name="keywords" content="ocean currents, oceanography, strait of georgia, visualization, three.js">
+    <meta name="author" content="Ocean Current Research Team">
+    <title>Ocean Current Simulator - Strait of Georgia</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            background: #0a0e27;
+            color: #fff;
+        }
+
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        #title {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 15px 25px;
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+        }
+
+        #title h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+            color: #4fc3f7;
+        }
+
+        #title p {
+            font-size: 14px;
+            color: #b0bec5;
+        }
+
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+            color: #4fc3f7;
+            z-index: 200;
+            text-align: center;
+        }
+
+        #loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(79, 195, 247, 0.3);
+            border-top-color: #4fc3f7;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Performance optimization */
+        canvas {
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container">
+        <div id="title">
+            <h1>Ocean Current Simulator</h1>
+            <p>Strait of Georgia, British Columbia</p>
+        </div>
+        <div id="loading">Loading...</div>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+</body>
+</html>
