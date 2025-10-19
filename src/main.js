@@ -3,8 +3,10 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { OceanScene } from './scene/OceanScene.js';
 import { ParticleSystem } from './scene/ParticleSystem.js';
 import { VectorField } from './scene/VectorField.js';
-import { CurrentDataGenerator } from './data/CurrentDataGenerator.js';
+import { BuoyDataLoader } from './data/BuoyDataLoader.js';
+import { FieldInterpolator } from './data/FieldInterpolator.js';
 import { ControlPanel } from './controls/ControlPanel.js';
+import { TimelineControl } from './controls/TimelineControl.js';
 import { DataPanel } from './utils/DataPanel.js';
 import { HelpPanel } from './utils/HelpPanel.js';
 
@@ -12,15 +14,36 @@ class OceanCurrentSimulator {
     constructor() {
         console.log('Initializing Ocean Current Simulator...');
         this.init();
-        console.log('Controls setup...');
-        this.setupControls();
-        console.log('Scene setup...');
-        this.setupScene();
-        console.log('Starting animation...');
-        this.animate();
-        console.log('Hiding loading screen...');
-        this.hideLoading();
-        console.log('Simulator ready!');
+        this.loadData();
+    }
+
+    async loadData() {
+        console.log('Loading buoy data...');
+        this.buoyDataLoader = new BuoyDataLoader();
+        this.fieldInterpolator = new FieldInterpolator();
+
+        try {
+            await this.buoyDataLoader.loadCSV('./processed_buoy_data_clustered_k3.csv');
+            console.log('Buoy data loaded successfully!');
+            console.log('Total records:', this.buoyDataLoader.getTotalRecords());
+
+            // Initialize to first record
+            this.currentRecordIndex = 0;
+            this.currentRecord = this.buoyDataLoader.getRecordByIndex(0);
+
+            console.log('Controls setup...');
+            this.setupControls();
+            console.log('Scene setup...');
+            this.setupScene();
+            console.log('Starting animation...');
+            this.animate();
+            console.log('Hiding loading screen...');
+            this.hideLoading();
+            console.log('Simulator ready!');
+        } catch (error) {
+            console.error('Failed to load buoy data:', error);
+            alert('Failed to load ocean current data. Please check console for details.');
+        }
     }
 
     init() {
@@ -55,19 +78,17 @@ class OceanCurrentSimulator {
 
         // Simulation parameters
         this.params = {
-            riverDischarge: 3000,
-            windSpeed: 10,
-            windDirection: 180,
-            tidePhase: 0,
             showVectors: true,
             showParticles: true,
             particleCount: 5000,
-            timeSpeed: 1.0,
-            isPlaying: false
+            playbackSpeed: 1.0,
+            isPlaying: false,
+            currentIndex: 0
         };
 
         this.time = 0;
         this.clock = new THREE.Clock();
+        this.accumulatedTime = 0; // For playback timing
 
         // Resize handler
         window.addEventListener('resize', () => this.onWindowResize());
@@ -87,35 +108,38 @@ class OceanCurrentSimulator {
         this.oceanScene = new OceanScene();
         this.scene.add(this.oceanScene.group);
 
-        // Create data generator
-        this.dataGenerator = new CurrentDataGenerator();
-
         // Create particle system
         this.particleSystem = new ParticleSystem(this.params.particleCount);
-        this.particleSystem.setDataGenerator(this.dataGenerator);
         this.scene.add(this.particleSystem.points);
 
         // Create vector field
         this.vectorField = new VectorField();
         this.scene.add(this.vectorField.group);
 
-        // Initial update
+        // Initial update with real data
         this.updateCurrents();
     }
 
     setupControls() {
         this.controlPanel = new ControlPanel(this.params, () => this.updateCurrents());
+        this.timelineControl = new TimelineControl(
+            this.buoyDataLoader,
+            (index) => this.setRecordByIndex(index)
+        );
         this.dataPanel = new DataPanel();
         this.helpPanel = new HelpPanel();
+
+        // Make simulator accessible globally for timeline control
+        window.simulator = this;
     }
 
     updateCurrents() {
-        // Generate velocity field based on current parameters
-        const velocityField = this.dataGenerator.generateField(
-            this.params.riverDischarge,
-            this.params.windSpeed,
-            this.params.windDirection,
-            this.params.tidePhase
+        if (!this.currentRecord) return;
+
+        // Generate velocity field from real buoy data
+        const velocityField = this.fieldInterpolator.interpolateToField(
+            this.currentRecord.spatialGrid,
+            this.currentRecord.buoys
         );
 
         // Store current velocity field
@@ -135,14 +159,25 @@ class OceanCurrentSimulator {
         // Update particle visibility
         this.particleSystem.points.visible = this.params.showParticles;
 
-        // Update data panel
-        const maxVelocity = this.dataGenerator.getMaxVelocity(velocityField);
-        const dominantForcing = this.dataGenerator.getDominantForcing(
-            this.params.riverDischarge,
-            this.params.windSpeed,
-            this.params.tidePhase
+        // Update data panel with real measurements
+        const maxVelocity = this.fieldInterpolator.getMaxVelocity(velocityField);
+        const clusterName = this.buoyDataLoader.getClusterName(this.currentRecord.cluster);
+
+        this.dataPanel.updateRealData(
+            this.currentRecord,
+            maxVelocity,
+            clusterName
         );
-        this.dataPanel.update(this.params, maxVelocity, dominantForcing);
+    }
+
+    setRecordByIndex(index) {
+        const record = this.buoyDataLoader.getRecordByIndex(index);
+        if (record) {
+            this.currentRecordIndex = index;
+            this.currentRecord = record;
+            this.params.currentIndex = index;
+            this.updateCurrents();
+        }
     }
 
     animate() {
@@ -150,18 +185,27 @@ class OceanCurrentSimulator {
 
         const delta = this.clock.getDelta();
 
-        // Update time if playing
-        if (this.params.isPlaying) {
-            this.time += delta * this.params.timeSpeed;
-            this.params.tidePhase = (this.time / 3600) % 12.4; // Convert to hours
-            this.updateCurrents();
+        // Update playback if playing
+        if (this.params.isPlaying && this.buoyDataLoader) {
+            this.accumulatedTime += delta * this.params.playbackSpeed;
+
+            // Advance to next record every second (simulating hourly data)
+            if (this.accumulatedTime >= 1.0) {
+                this.accumulatedTime = 0;
+                const nextIndex = (this.currentRecordIndex + 1) % this.buoyDataLoader.getTotalRecords();
+                this.setRecordByIndex(nextIndex);
+            }
         }
+
+        this.time += delta;
 
         // Update controls
         this.controls.update();
 
         // Update particle positions
-        this.particleSystem.update(delta);
+        if (this.currentVelocityField) {
+            this.particleSystem.update(delta);
+        }
 
         // Update ocean animation
         this.oceanScene.update(this.time);

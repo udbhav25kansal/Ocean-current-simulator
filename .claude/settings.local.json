@@ -7,7 +7,10 @@
       "Bash(npm start)",
       "Read(//c/Users/udbha/Downloads/**)",
       "Bash(git init)",
-      "Bash(git add .)"
+      "Bash(git add .)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nInitial commit: Ocean Current Simulator with mock data\n\n- Fixed initialization order bug (dataPanel setup before scene setup)\n- Complete 3D visualization with particles and vector fields\n- Interactive controls for river discharge, wind, and tides\n- Mock data generation using CurrentDataGenerator\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git checkout -b feature/real-buoy-data-integration)",
+      "Bash(npm install papaparse)"
     ],
     "deny": [],
     "ask": []

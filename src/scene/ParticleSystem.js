@@ -64,18 +64,14 @@ export class ParticleSystem {
         this.velocityField = field;
     }
 
-    setDataGenerator(generator) {
-        this.dataGenerator = generator;
-    }
-
     update(delta) {
-        if (!this.velocityField || !this.dataGenerator) return;
+        if (!this.velocityField) return;
 
         const positions = this.geometry.attributes.position.array;
         const colors = this.geometry.attributes.color.array;
 
         // Maximum velocity for color mapping
-        const maxVel = this.dataGenerator.getMaxVelocity(this.velocityField);
+        const maxVel = this.getMaxVelocity(this.velocityField);
 
         for (let i = 0; i < this.particleCount; i++) {
             const i3 = i * 3;
@@ -85,7 +81,7 @@ export class ParticleSystem {
             const z = positions[i3 + 2];
 
             // Get velocity at particle position
-            const velocity = this.dataGenerator.getVelocityAt(x, z, this.velocityField);
+            const velocity = this.getVelocityAt(x, z, this.velocityField);
 
             // Update position based on velocity
             const speed = 5.0; // Speed multiplier for visualization
@@ -150,5 +146,59 @@ export class ParticleSystem {
         this.particleCount = count;
         this.points.geometry.dispose();
         this.createParticles();
+    }
+
+    getVelocityAt(x, z, field) {
+        // Bilinear interpolation to get velocity at arbitrary point
+        const gridWidth = field[0].length;
+        const gridHeight = field.length;
+        const gridSpacing = 2.5;
+
+        const gridX = (x / gridSpacing) + (gridWidth / 2);
+        const gridZ = (z / gridSpacing) + (gridHeight / 2);
+
+        // Clamp to grid boundaries
+        if (gridX < 0 || gridX >= gridWidth - 1 ||
+            gridZ < 0 || gridZ >= gridHeight - 1) {
+            return { u: 0, v: 0, magnitude: 0 };
+        }
+
+        const i = Math.floor(gridZ);
+        const j = Math.floor(gridX);
+        const fx = gridX - j;
+        const fz = gridZ - i;
+
+        // Get four surrounding grid points
+        const p00 = field[i][j];
+        const p10 = field[i][j + 1];
+        const p01 = field[i + 1][j];
+        const p11 = field[i + 1][j + 1];
+
+        // Bilinear interpolation
+        const u = (1 - fx) * (1 - fz) * p00.u +
+                  fx * (1 - fz) * p10.u +
+                  (1 - fx) * fz * p01.u +
+                  fx * fz * p11.u;
+
+        const v = (1 - fx) * (1 - fz) * p00.v +
+                  fx * (1 - fz) * p10.v +
+                  (1 - fx) * fz * p01.v +
+                  fx * fz * p11.v;
+
+        const magnitude = Math.sqrt(u * u + v * v);
+
+        return { u, v, magnitude };
+    }
+
+    getMaxVelocity(field) {
+        let maxMag = 0;
+        for (let i = 0; i < field.length; i++) {
+            for (let j = 0; j < field[i].length; j++) {
+                if (field[i][j].magnitude > maxMag) {
+                    maxMag = field[i][j].magnitude;
+                }
+            }
+        }
+        return maxMag;
     }
 }
