@@ -162,11 +162,11 @@ export class BuoyDataLoader {
     }
 
     getClusterName(clusterId) {
-        // Map cluster IDs to meaningful names based on typical ocean regimes
+        // Map cluster IDs to ocean regimes based on k-means clustering analysis
         const clusterNames = {
-            0: 'Wind-Dominated',
-            1: 'Tidal-Dominated',
-            2: 'River-Dominated'
+            0: 'Tide + River Dominated',
+            1: 'Wind/Storm-Dominated',
+            2: 'River Discharge Dominated'
         };
         return clusterNames[clusterId] || 'Unknown';
     }

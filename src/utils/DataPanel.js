@@ -178,44 +178,6 @@ export class DataPanel {
         html += `</div>`;
 
         this.dataContainer.innerHTML = html;
-
-        // Update chart with simulated influences based on measurements
-        const influences = this.calculateRealInfluences(record);
-        this.updateChart(influences);
-    }
-
-    calculateRealInfluences(record) {
-        // Estimate relative influence of each forcing mechanism based on real data
-
-        // River influence (normalize discharge)
-        const riverInfluence = record.riverDischarge ? Math.min(record.riverDischarge / 5000, 1) : 0;
-
-        // Tidal influence (estimate from sea level variation)
-        // Higher variation suggests stronger tidal influence
-        const tidalInfluence = record.seaLevel !== null && record.seaLevel !== undefined
-            ? Math.abs(Math.sin(record.seaLevel * Math.PI))
-            : 0.3;
-
-        // Wind influence (estimated from buoy velocity variance)
-        // Calculate variance in buoy velocities as proxy for wind influence
-        const velocities = Object.values(record.buoys)
-            .filter(b => b.u !== null && b.v !== null)
-            .map(b => Math.sqrt(b.u * b.u + b.v * b.v));
-
-        let windInfluence = 0.3; // Default
-        if (velocities.length > 1) {
-            const avg = velocities.reduce((a, b) => a + b, 0) / velocities.length;
-            const variance = velocities.reduce((sum, v) => sum + Math.pow(v - avg, 2), 0) / velocities.length;
-            windInfluence = Math.min(variance * 5, 1); // Scale variance to influence
-        }
-
-        const total = riverInfluence + tidalInfluence + windInfluence;
-
-        return {
-            river: total > 0 ? (riverInfluence / total) * 100 : 33.3,
-            wind: total > 0 ? (windInfluence / total) * 100 : 33.3,
-            tide: total > 0 ? (tidalInfluence / total) * 100 : 33.3
-        };
     }
 
     destroy() {
