@@ -13,7 +13,14 @@
       "Bash(npm install papaparse)",
       "Bash(git commit -m \"$(cat <<''EOF''\nIntegrate real buoy data from CSV file\n\nMajor changes:\n- Added BuoyDataLoader to parse 17,494 hourly records from CSV\n- Created FieldInterpolator to map 256-point spatial grid to visualization\n- Replaced mock CurrentDataGenerator with real-time data playback\n- Added TimelineControl UI for scrubbing through time-series data\n- Updated DataPanel to display actual measurements (river discharge, sea level, air temp)\n- Modified ParticleSystem to work independently without data generator\n- Simplified ControlPanel for real data visualization mode\n\nFeatures:\n- Timeline playback with play/pause, step forward/backward controls\n- Variable playback speed (0.5x to 10x)\n- Display of ocean regime clusters (Wind/Tidal/River-Dominated)\n- Real buoy station velocity measurements\n- Date/time navigation through 2023-2024 dataset\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
       "Bash(git add -A)",
-      "Bash(git commit -m \"$(cat <<''EOF''\nUpdate cluster labels and remove forcing influence chart\n\nChanges:\n- Corrected cluster names based on analysis:\n  - Cluster 0: Tide + River Dominated\n  - Cluster 1: Wind/Storm-Dominated\n  - Cluster 2: River Discharge Dominated\n- Removed inaccurate forcing influence chart calculation\n- Kept cluster-based ocean regime display\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
+      "Bash(git commit -m \"$(cat <<''EOF''\nUpdate cluster labels and remove forcing influence chart\n\nChanges:\n- Corrected cluster names based on analysis:\n  - Cluster 0: Tide + River Dominated\n  - Cluster 1: Wind/Storm-Dominated\n  - Cluster 2: River Discharge Dominated\n- Removed inaccurate forcing influence chart calculation\n- Kept cluster-based ocean regime display\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git remote add origin https://github.com/udbhav25kansal/Ocean-current-simulator.git)",
+      "Bash(git branch -M main)",
+      "Bash(git push -u origin main)",
+      "Bash(git push -u origin feature/real-buoy-data-integration)",
+      "Bash(npm install --save-dev gh-pages)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nAdd GitHub Pages deployment configuration\n\n- Set base path in vite.config.js for GitHub Pages\n- Add deploy script to package.json\n- Install gh-pages for automated deployment\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git push origin main)"
     ],
     "deny": [],
     "ask": []
