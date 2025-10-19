@@ -20,7 +20,9 @@
       "Bash(git push -u origin feature/real-buoy-data-integration)",
       "Bash(npm install --save-dev gh-pages)",
       "Bash(git commit -m \"$(cat <<''EOF''\nAdd GitHub Pages deployment configuration\n\n- Set base path in vite.config.js for GitHub Pages\n- Add deploy script to package.json\n- Install gh-pages for automated deployment\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
-      "Bash(git push origin main)"
+      "Bash(git push origin main)",
+      "Bash(npm run deploy)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nFix CSV file loading for GitHub Pages deployment\n\n- Moved CSV file to public/ folder so it''s included in build\n- Updated CSV path to use Vite''s BASE_URL for correct routing\n- Works for both local dev and production deployment\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
     ],
     "deny": [],
     "ask": []

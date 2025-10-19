@@ -23,7 +23,8 @@ class OceanCurrentSimulator {
         this.fieldInterpolator = new FieldInterpolator();
 
         try {
-            await this.buoyDataLoader.loadCSV('./processed_buoy_data_clustered_k3.csv');
+            // Use relative path that works with Vite's base configuration
+            await this.buoyDataLoader.loadCSV(`${import.meta.env.BASE_URL}processed_buoy_data_clustered_k3.csv`);
             console.log('Buoy data loaded successfully!');
             console.log('Total records:', this.buoyDataLoader.getTotalRecords());
 
